@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class SLIPERYROBOT_VR : MonoBehaviour
+public class MovemntScript : MonoBehaviour
 {
     [Header("Wheel Assignments")]
     public WheelCollider frontLeftWheel;
@@ -30,6 +30,7 @@ public class SLIPERYROBOT_VR : MonoBehaviour
 
     void FixedUpdate()
     {
+        
         //========================================
         // FORWARD / BACKWARD
         // W = Reverse
