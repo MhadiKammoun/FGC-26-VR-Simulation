@@ -3,7 +3,7 @@ using UnityEngine;
 public class BallPickUp : MonoBehaviour
 {
     private Rigidbody rb;
-    public bool isHolding = false;          // ? Changed to public
+    public bool isHolding = false;          // ? Now public
 
     public bool IsHolding => isHolding;
 

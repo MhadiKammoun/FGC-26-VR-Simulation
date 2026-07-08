@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Raycast : MonoBehaviour
 {
@@ -21,15 +20,22 @@ public class Raycast : MonoBehaviour
                 isInteractable = true;
                 currentTarget = hit.collider.gameObject;
 
-                // Turn ON the outline checkbox on the ball
-                var outline = hit.collider.GetComponent<Outline>();
-                if (outline != null) outline.enabled = true;
+                // === CHECK THE "OUTLINE" CHECKBOX in Surface Inputs ===
+                var renderer = hit.collider.GetComponent<MeshRenderer>();
+                if (renderer != null && renderer.materials.Length > 1)
+                {
+                    Material outlineMat = renderer.materials[1];
+                    outlineMat.SetFloat("_Outline", 1f);   // ? This checks the OUTLINE checkbox
+                }
 
-                // Turn OFF outline on previous ball
+                // Uncheck on previous ball
                 if (previousTarget != null && previousTarget != hit.collider.gameObject)
                 {
-                    var prevOutline = previousTarget.GetComponent<Outline>();
-                    if (prevOutline != null) prevOutline.enabled = false;
+                    var prevRenderer = previousTarget.GetComponent<MeshRenderer>();
+                    if (prevRenderer != null && prevRenderer.materials.Length > 1)
+                    {
+                        prevRenderer.materials[1].SetFloat("_Outline", 0f);
+                    }
                 }
                 previousTarget = hit.collider.gameObject;
             }
@@ -40,8 +46,11 @@ public class Raycast : MonoBehaviour
 
                 if (previousTarget != null)
                 {
-                    var prevOutline = previousTarget.GetComponent<Outline>();
-                    if (prevOutline != null) prevOutline.enabled = false;
+                    var prevRenderer = previousTarget.GetComponent<MeshRenderer>();
+                    if (prevRenderer != null && prevRenderer.materials.Length > 1)
+                    {
+                        prevRenderer.materials[1].SetFloat("_Outline", 0f);
+                    }
                     previousTarget = null;
                 }
             }
@@ -53,8 +62,11 @@ public class Raycast : MonoBehaviour
 
             if (previousTarget != null)
             {
-                var prevOutline = previousTarget.GetComponent<Outline>();
-                if (prevOutline != null) prevOutline.enabled = false;
+                var prevRenderer = previousTarget.GetComponent<MeshRenderer>();
+                if (prevRenderer != null && prevRenderer.materials.Length > 1)
+                {
+                    prevRenderer.materials[1].SetFloat("_Outline", 0f);
+                }
                 previousTarget = null;
             }
         }
