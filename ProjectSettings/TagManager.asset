@@ -7,6 +7,8 @@ TagManager:
   - Car
   - AttachPoint
   - WildFire
+  - Plane
+  - Brace
   layers:
   - Default
   - TransparentFX
