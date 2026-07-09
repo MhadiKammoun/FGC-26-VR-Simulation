@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/BYE.unity
     guid: 57fcc9e843046be4daf658075049ffba
   - enabled: 1
-    path: Assets/Scenes/VR.unity
+    path: Assets/Scenes/VR No Good.unity
     guid: a2dbc656eb4d2fe40ae3babd1ec51424
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 622fc2ab97ceea041a2b272c69e488e5, type: 2}

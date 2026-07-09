@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class HumanShooter : MonoBehaviour
 {
@@ -10,7 +11,21 @@ public class HumanShooter : MonoBehaviour
     public float arcHeight = 5f;
 
     [Header("Target (Extinguisher Hole)")]
-    public Transform Target;               // ← Drag the hole here
+    public Transform Target;          // ← Drag the hole here
+    public InputActionReference pickUpAction;
+    public InputActionReference ShootingAction;
+
+    void OnEnable()
+    {
+         pickUpAction.action.Enable();
+         ShootingAction.action.Enable();
+    }
+    void OnDisable()
+    {
+        pickUpAction.action.Disable();
+        ShootingAction.action.Disable();
+    }
+
 
     [Header("Hold Point")]
     public Transform holdPoint;            // ← Drag the empty child under the camera here
@@ -31,7 +46,7 @@ public class HumanShooter : MonoBehaviour
     void Update()
     {
         // === PICKUP with C (blocked if already holding a ball) ===
-        if (Input.GetKeyDown(KeyCode.Mouse1) && Raycast.isInteractable && PlayerHand.currentHeldObject == null)
+        if (pickUpAction.action.WasPressedThisFrame() && Raycast.isInteractable && PlayerHand.currentHeldObject == null)
         {
             if (Raycast.currentTarget != null)
             {
@@ -42,7 +57,7 @@ public class HumanShooter : MonoBehaviour
         }
 
         // === SHOOT with X ===
-        if (PlayerHand.currentHeldObject != null && Input.GetKeyDown(KeyCode.X))
+        if (PlayerHand.currentHeldObject != null && ShootingAction.action.WasPressedThisFrame())
         {
             var ballScript = PlayerHand.currentHeldObject.GetComponent<BallPickUp>();
             if (ballScript != null && ballScript.isHolding)
