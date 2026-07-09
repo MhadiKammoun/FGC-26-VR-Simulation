@@ -30,7 +30,7 @@ Material:
     - _BUILTIN_QueueOffset: -23
     - _FeatheringEffect: 0.2
     - _Outline: 0
-    - _Thikness: 0.005
+    - _Thikness: 0.07
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _VignetteColor: {r: 0, g: 0, b: 0, a: 1}

@@ -25,7 +25,7 @@ public class CameraSwitcher : MonoBehaviour
     void Update()
     {
         // Check for the "N" key press
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.U))
         {
             CycleCamera();
         }
