@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class HumanShooter : MonoBehaviour
@@ -17,25 +18,18 @@ public class HumanShooter : MonoBehaviour
 
     void OnEnable()
     {
-         pickUpAction.action.Enable();
-         ShootingAction.action.Enable();
+        pickUpAction.action.Enable();
+        ShootingAction.action.Enable();
     }
+
     void OnDisable()
     {
         pickUpAction.action.Disable();
         ShootingAction.action.Disable();
     }
 
-
     [Header("Hold Point")]
     public Transform holdPoint;            // ← Drag the empty child under the camera here
-
-    // Flying state
-    private bool isBallFlying = false;
-    private float t = 0;
-    private GameObject flyingBall;
-    private Vector3 startPos;
-    private Vector3 endPos;
 
     void Start()
     {
@@ -65,32 +59,6 @@ public class HumanShooter : MonoBehaviour
                 StartThrow();
             }
         }
-
-        // === Flying arc ===
-        if (isBallFlying && flyingBall != null)
-        {
-            t += Time.deltaTime;
-            float t01 = t / throwDuration;
-
-            Vector3 pos = Vector3.Lerp(startPos, endPos, t01);
-            Vector3 arc = Vector3.up * arcHeight * Mathf.Sin(t01 * Mathf.PI);
-
-            flyingBall.transform.position = pos + arc;
-
-            if (t01 >= 1f)
-            {
-                isBallFlying = false;
-
-                Rigidbody rb = flyingBall.GetComponent<Rigidbody>();
-                if (rb != null)
-                {
-                    rb.isKinematic = false;
-                    rb.useGravity = true;           // ← Gravity re-enabled at target
-                }
-
-                flyingBall = null;
-            }
-        }
     }
 
     void StartThrow()
@@ -101,7 +69,7 @@ public class HumanShooter : MonoBehaviour
         BallPickUp ballScript = ball.GetComponent<BallPickUp>();
         if (ballScript == null) return;
 
-        // Release ball
+        // Release ball from hand state
         ballScript.isHolding = false;
         PlayerHand.currentHeldObject = null;
         ball.transform.SetParent(null);
@@ -117,11 +85,39 @@ public class HumanShooter : MonoBehaviour
             rb.useGravity = false;
         }
 
-        // Start fixed arc to the hole
-        flyingBall = ball;
-        startPos = ball.transform.position;
-        endPos = Target.position;
-        t = 0;
-        isBallFlying = true;
+        // Start an independent arc process specifically for THIS ball instance
+        StartCoroutine(AnimateBallArc(ball, ball.transform.position, Target.position));
+    }
+
+    private IEnumerator AnimateBallArc(GameObject ball, Vector3 startPos, Vector3 endPos)
+    {
+        float timer = 0f;
+
+        while (timer < throwDuration)
+        {
+            // Safety check in case the ball is destroyed mid-air
+            if (ball == null) yield break;
+
+            timer += Time.deltaTime;
+            float t01 = Mathf.Clamp01(timer / throwDuration);
+
+            Vector3 pos = Vector3.Lerp(startPos, endPos, t01);
+            Vector3 arc = Vector3.up * arcHeight * Mathf.Sin(t01 * Mathf.PI);
+
+            ball.transform.position = pos + arc;
+
+            yield return null; // Wait for the next frame
+        }
+
+        // Arc finished - restore physics on THIS specific ball
+        if (ball != null)
+        {
+            Rigidbody rb = ball.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+                rb.useGravity = true;       // ← Gravity re-enabled at target
+            }
+        }
     }
 }
