@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 4, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 1.027, y: 1.027, z: 1.027}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -147,5 +147,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d87f204b01d4484abc37a242ac3e1b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  holdPoint: {fileID: 9169720116711972781, guid: 08fd5f54879867e49b3413c4a712d663, type: 3}
-  outlineMaterial: {fileID: 2100000, guid: 18db0eccc5d38764ebdec86b81bc5ba2, type: 2}
+  isHolding: 0
