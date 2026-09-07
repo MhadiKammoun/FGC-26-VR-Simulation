@@ -15,9 +15,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Joystick",
+                    "name": "Left Joystick",
                     "type": "Value",
                     "id": "c3ae4a7d-62f7-46e1-8c44-bf272ffdba41",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Right Joystick",
+                    "type": "Value",
+                    "id": "581dcfb7-141b-4fc4-a9bf-bc669c8d67f5",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -76,7 +85,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Joystick",
+                    "action": "Left Joystick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ff77ad76-9031-412e-886a-2adf78c098cf",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Right Joystick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
