@@ -1,52 +1,100 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Collider))]
 public class SimpleIntake : MonoBehaviour
 {
-    [Header("Settings")]
-    public float intakeForce = 10f;
-    public Vector3 intakeDirection = Vector3.forward;
+    [Header("Input Action")]
+    [Tooltip("Input action to toggle intake (Keyboard 'F', Gamepad, or XR Grip)")]
+    [SerializeField] private InputActionReference intakeToggleAction;
+
+    [Header("Intake Physics")]
+    [SerializeField] private float pushForce = 15f;
+    [Tooltip("Direction relative to this transform where objects are pulled")]
+    [SerializeField] private Vector3 pushDirection = Vector3.forward;
+    [SerializeField] private string targetTag = "WildFire";
 
     [Header("Roller Visual")]
-    public Transform roller;
-    public float rollerSpeed = 360f;
+    [SerializeField] private Transform roller;
+    [SerializeField] private float rollerSpeed = 360f;
+    [SerializeField] private Vector3 rollerRotationAxis = Vector3.right; // Local X (1, 0, 0)
+    [SerializeField] private bool invertRoller = true;                  // Inverted
 
-    [Header("Desktop Controls")]
-    public KeyCode intakeToggleKey = KeyCode.F;
+    [Header("Status")]
+    [SerializeField] private bool intakeActive = false;
 
-    private bool intakeActive = false;
-    private bool previousKeyState = false;
+    private readonly HashSet<Rigidbody> contactingBodies = new HashSet<Rigidbody>();
 
-    private void Update()
+    private void OnEnable()
     {
-        // DESKTOP: F key to toggle intake
-        bool keyPressed = Input.GetKey(intakeToggleKey);
-
-        // Detect rising edge (key just pressed)
-        if (keyPressed && !previousKeyState)
+        if (intakeToggleAction != null)
         {
-            intakeActive = !intakeActive;
-            Debug.Log("Intake " + (intakeActive ? "ON" : "OFF"));
-        }
-
-        previousKeyState = keyPressed;
-
-        // Rotate roller if intake is active
-        if (intakeActive && roller != null)
-        {
-            roller.Rotate(Vector3.forward * rollerSpeed * Time.deltaTime, Space.Self);
+            intakeToggleAction.action.Enable();
+            intakeToggleAction.action.performed += OnTogglePressed;
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    private void OnDisable()
     {
-        if (!intakeActive) return;
-
-        if (other.CompareTag("WildFire"))
+        if (intakeToggleAction != null)
         {
-            Rigidbody rb = other.attachedRigidbody;
+            intakeToggleAction.action.performed -= OnTogglePressed;
+            intakeToggleAction.action.Disable();
+        }
+        contactingBodies.Clear();
+    }
+
+    private void OnTogglePressed(InputAction.CallbackContext context)
+    {
+        intakeActive = !intakeActive;
+        Debug.Log("Intake " + (intakeActive ? "ACTIVE" : "INACTIVE"));
+    }
+
+    private void Update()
+    {
+        if (intakeActive && roller != null)
+        {
+            float directionSign = invertRoller ? -1f : 1f;
+            roller.Rotate(rollerRotationAxis * (rollerSpeed * directionSign * Time.deltaTime), Space.Self);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!intakeActive || contactingBodies.Count == 0) return;
+
+        Vector3 forceVector = transform.TransformDirection(pushDirection.normalized) * pushForce;
+
+        foreach (Rigidbody rb in contactingBodies)
+        {
             if (rb != null)
             {
-                rb.AddForce(transform.TransformDirection(intakeDirection) * intakeForce);
+                rb.AddForce(forceVector, ForceMode.Acceleration);
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag(targetTag))
+        {
+            Rigidbody rb = other.attachedRigidbody;
+            if (rb != null && !contactingBodies.Contains(rb))
+            {
+                contactingBodies.Add(rb);
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag(targetTag))
+        {
+            Rigidbody rb = other.attachedRigidbody;
+            if (rb != null && contactingBodies.Contains(rb))
+            {
+                contactingBodies.Remove(rb);
             }
         }
     }
