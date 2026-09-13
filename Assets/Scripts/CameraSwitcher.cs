@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraSwitcher : MonoBehaviour
 {
@@ -6,12 +7,28 @@ public class CameraSwitcher : MonoBehaviour
     [Tooltip("Drag all the cameras you want to switch between into this list.")]
     public Camera[] cameras;
 
+    [Header("Input")]
+    [Tooltip("Input action used to switch to the next camera.")]
+    public InputActionReference switchCameraAction;
+
     private int currentCameraIndex = 0;
+
+    void OnEnable()
+    {
+        if (switchCameraAction != null)
+            switchCameraAction.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        if (switchCameraAction != null)
+            switchCameraAction.action.Disable();
+    }
 
     void Start()
     {
-        // Ensure we have cameras assigned, otherwise disable the script
-        if (cameras.Length == 0)
+        // Ensure we have cameras assigned
+        if (cameras == null || cameras.Length == 0)
         {
             Debug.LogError("No cameras assigned to the CameraSwitcher script!", this);
             enabled = false;
@@ -24,8 +41,9 @@ public class CameraSwitcher : MonoBehaviour
 
     void Update()
     {
-        // Check for the "N" key press
-        if (Input.GetKeyDown(KeyCode.U))
+        // Check if the Input Action was pressed
+        if (switchCameraAction != null &&
+            switchCameraAction.action.WasPressedThisFrame())
         {
             CycleCamera();
         }
@@ -33,7 +51,7 @@ public class CameraSwitcher : MonoBehaviour
 
     void CycleCamera()
     {
-        // Move to the next camera index, wrapping back to 0 if we hit the end
+        // Move to the next camera, wrapping back to 0
         currentCameraIndex = (currentCameraIndex + 1) % cameras.Length;
         SetActiveCamera(currentCameraIndex);
     }
@@ -42,14 +60,17 @@ public class CameraSwitcher : MonoBehaviour
     {
         for (int i = 0; i < cameras.Length; i++)
         {
-            // Enable the selected camera, disable all others
-            cameras[i].gameObject.SetActive(i == indexToEnable);
+            bool isActive = i == indexToEnable;
 
-            // Optional: If cameras have AudioListeners, toggle them too to avoid Unity warnings
+            // Enable selected camera, disable all others
+            cameras[i].gameObject.SetActive(isActive);
+
+            // Toggle AudioListener
             AudioListener listener = cameras[i].GetComponent<AudioListener>();
+
             if (listener != null)
             {
-                listener.enabled = (i == indexToEnable);
+                listener.enabled = isActive;
             }
         }
     }
