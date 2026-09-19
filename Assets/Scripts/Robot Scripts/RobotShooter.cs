@@ -12,6 +12,10 @@ public class RobotShooter : MonoBehaviour
     public Transform firePoint;
     public Transform target;
 
+    [Header("Storage Detection")]
+    [Tooltip("The dedicated box collider (Is Trigger = on) marking the robot's ball storage compartment. Only a ball entering THIS collider will be picked up — not any other collider on the robot.")]
+    public Collider storageTrigger;
+
     private bool isBallReady = false;
     private GameObject readyBall = null;
 
@@ -21,6 +25,29 @@ public class RobotShooter : MonoBehaviour
     private Vector3 startPos;
     private Vector3 endPos;
     private Vector3 controlPoint;
+
+    void Awake()
+    {
+        if (storageTrigger == null)
+        {
+            Debug.LogWarning($"[RobotShooter] '{name}' has no Storage Trigger assigned — ball pickup will not work until one is set.");
+            return;
+        }
+
+        if (!storageTrigger.isTrigger)
+        {
+            Debug.LogWarning($"[RobotShooter] The Storage Trigger assigned on '{name}' does not have Is Trigger enabled.");
+        }
+
+        // Attach (or reuse) a relay directly on the storage trigger's own GameObject.
+        // This is what actually restricts detection to that specific collider:
+        // Unity fires OnTriggerEnter on whatever GameObject owns the entered
+        // collider, so the listener HAS to live there, not on the robot body.
+        StorageTriggerRelay relay = storageTrigger.GetComponent<StorageTriggerRelay>();
+        if (relay == null)
+            relay = storageTrigger.gameObject.AddComponent<StorageTriggerRelay>();
+        relay.owner = this;
+    }
 
     void Update()
     {
@@ -110,7 +137,10 @@ public class RobotShooter : MonoBehaviour
         isBallFlying = true;
     }
 
-    private void OnTriggerEnter(Collider other)
+    // Called only by the StorageTriggerRelay sitting on storageTrigger's GameObject —
+    // this is the only path that can set isBallReady now, so touching any other
+    // collider on the robot (its frame, its front, etc.) no longer does anything.
+    public void HandleStorageTriggerEnter(Collider other)
     {
         if (other.CompareTag("WildFire") && !isBallFlying)
         {
@@ -119,12 +149,30 @@ public class RobotShooter : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    public void HandleStorageTriggerExit(Collider other)
     {
         if (other.gameObject == readyBall)
         {
             readyBall = null;
             isBallReady = false;
         }
+    }
+}
+
+// Lives on the storage trigger's own GameObject (added automatically by
+// RobotShooter.Awake). Its only job is forwarding this specific collider's
+// trigger events back to the shooter — nothing else on the robot can trigger it.
+public class StorageTriggerRelay : MonoBehaviour
+{
+    [HideInInspector] public RobotShooter owner;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (owner != null) owner.HandleStorageTriggerEnter(other);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (owner != null) owner.HandleStorageTriggerExit(other);
     }
 }
