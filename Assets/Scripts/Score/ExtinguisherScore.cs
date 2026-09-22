@@ -9,9 +9,16 @@ public class ExtinguisherScore : MonoBehaviour
 {
     [SerializeField] private ScoreManager ScoreManager;
 
+    private bool gameStarted = false;
+    // Called by XR Start Button
+    public void StartExtinguisherSystem()
+    {
+        gameStarted = true;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("WildFire"))
+        if (gameStarted && other.CompareTag("WildFire"))
         {
             ScoreManager.AddExtinguisherPoints(1);
         }
