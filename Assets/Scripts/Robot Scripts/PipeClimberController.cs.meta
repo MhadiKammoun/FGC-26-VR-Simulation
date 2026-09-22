@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 934500909ce072f44a00b52e77b202b6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - gripperAnchor: {instanceID: 0}
+  - climbingGear1: {instanceID: 0}
+  - climbingGear2: {instanceID: 0}
+  - stickAction: {fileID: 484898004088634588, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
+  - currentPipe: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

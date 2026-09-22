@@ -1,167 +1,218 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class RobotShooter : MonoBehaviour
 {
-    [Header("Shooting Settings")]
-    public float throwDuration = 0.75f;
-    public float arcHeight = 2.8f;
-    public float shootDistance = 7f;
-    public float exitSpeedMultiplier = 1f; // 1 = exact match to curve speed (no snap). Lower values will reintroduce a deceleration "stop".
+    public enum ActivationMode { Toggle, Hold }
+
+    [Header("Input System")]
+    [Tooltip("Input action to activate/deactivate the shooter.")]
+    public InputActionProperty shooterActiveAction;
+    public ActivationMode activationMode = ActivationMode.Toggle;
+
+    [Header("Flywheel Visuals")]
+    public Transform flywheelLeft;
+    public Transform flywheelRight;
+    public float flywheelSpinSpeed = 2160f;
+    public bool invertLeftWheel = false;
+    public bool invertRightWheel = true;
+
+    [Header("Physical Launch Settings")]
+    [Tooltip("Forward launch velocity or speed multiplier.")]
+    public float forwardForce = 16f;
+    [Tooltip("Upward launch velocity.")]
+    public float upwardForce = 8f;
+
+    [Header("Collision Management")]
+    [Tooltip("When ball.position.y reaches this threshold, collision with the robot chassis is re-enabled.")]
+    public float reactivationYThreshold = 14f;
 
     [Header("References")]
     public Transform firePoint;
-    public Transform target;
-
-    [Header("Storage Detection")]
-    [Tooltip("The dedicated box collider (Is Trigger = on) marking the robot's ball storage compartment. Only a ball entering THIS collider will be picked up — not any other collider on the robot.")]
     public Collider storageTrigger;
 
-    private bool isBallReady = false;
-    private GameObject readyBall = null;
+    [Header("Read-Only Status")]
+    [SerializeField] private bool isShooterPowered = false;
 
-    private bool isBallFlying = false;
-    private float t = 0f;
-    private GameObject flyingBall = null;
-    private Vector3 startPos;
-    private Vector3 endPos;
-    private Vector3 controlPoint;
+    private readonly Queue<GameObject> ballQueue = new Queue<GameObject>();
+    private readonly List<BallCollisionTracker> activeBalls = new List<BallCollisionTracker>();
+    private Collider[] robotColliders;
+
+    private class BallCollisionTracker
+    {
+        public GameObject ball;
+        public Collider ballCol;
+        public Rigidbody rb;
+    }
 
     void Awake()
     {
-        if (storageTrigger == null)
-        {
-            Debug.LogWarning($"[RobotShooter] '{name}' has no Storage Trigger assigned — ball pickup will not work until one is set.");
-            return;
-        }
+        // Cache all colliders belonging to this robot chassis
+        robotColliders = GetComponentsInChildren<Collider>();
 
-        if (!storageTrigger.isTrigger)
+        if (storageTrigger != null)
         {
-            Debug.LogWarning($"[RobotShooter] The Storage Trigger assigned on '{name}' does not have Is Trigger enabled.");
+            StorageTriggerRelay relay = storageTrigger.GetComponent<StorageTriggerRelay>();
+            if (relay == null)
+                relay = storageTrigger.gameObject.AddComponent<StorageTriggerRelay>();
+            relay.owner = this;
         }
+    }
 
-        // Attach (or reuse) a relay directly on the storage trigger's own GameObject.
-        // This is what actually restricts detection to that specific collider:
-        // Unity fires OnTriggerEnter on whatever GameObject owns the entered
-        // collider, so the listener HAS to live there, not on the robot body.
-        StorageTriggerRelay relay = storageTrigger.GetComponent<StorageTriggerRelay>();
-        if (relay == null)
-            relay = storageTrigger.gameObject.AddComponent<StorageTriggerRelay>();
-        relay.owner = this;
+    void OnEnable() => shooterActiveAction.action?.Enable();
+    void OnDisable()
+    {
+        shooterActiveAction.action?.Disable();
+        isShooterPowered = false;
     }
 
     void Update()
     {
-        if (isBallReady && readyBall != null && Input.GetMouseButtonDown(0) && !isBallFlying)
+        HandleInput();
+
+        if (isShooterPowered)
         {
-            StartThrow();
+            SpinFlywheels();
+
+            if (ballQueue.Count > 0)
+            {
+                ShootBall();
+            }
         }
 
-        if (isBallFlying && flyingBall != null)
+        // Track in-flight balls and re-enable collisions once above Y = 14
+        MonitorBallHeights();
+    }
+
+    void HandleInput()
+    {
+        if (shooterActiveAction.action == null) return;
+
+        if (activationMode == ActivationMode.Toggle)
         {
-            t += Time.deltaTime;
-            float t01 = Mathf.Clamp01(t / throwDuration);
+            if (shooterActiveAction.action.WasPressedThisFrame())
+                isShooterPowered = !isShooterPowered;
+        }
+        else
+        {
+            isShooterPowered = shooterActiveAction.action.IsPressed();
+        }
+    }
 
-            // Smooth Quadratic Bezier
-            float u = 1f - t01;
-            Vector3 pos = u * u * startPos + 2f * u * t01 * controlPoint + t01 * t01 * endPos;
-            flyingBall.transform.position = pos;
+    void SpinFlywheels()
+    {
+        float deltaAngle = flywheelSpinSpeed * Time.deltaTime;
+        if (flywheelLeft != null)
+            flywheelLeft.Rotate(0f, 0f, deltaAngle * (invertLeftWheel ? -1f : 1f), Space.Self);
+        if (flywheelRight != null)
+            flywheelRight.Rotate(0f, 0f, deltaAngle * (invertRightWheel ? -1f : 1f), Space.Self);
+    }
 
-            if (t01 >= 1f)
+    void ShootBall()
+    {
+        while (ballQueue.Count > 0 && ballQueue.Peek() == null) ballQueue.Dequeue();
+        if (ballQueue.Count == 0) return;
+
+        GameObject ball = ballQueue.Dequeue();
+        ball.transform.SetParent(null);
+
+        if (firePoint != null)
+        {
+            ball.transform.position = firePoint.position;
+        }
+
+        Rigidbody rb = ball.GetComponent<Rigidbody>();
+        Collider ballCol = ball.GetComponent<Collider>();
+
+        if (rb != null && ballCol != null)
+        {
+            // Keep collider fully ON so it hits walls immediately
+            ballCol.enabled = true;
+
+            // Ignore only the robot chassis colliders while inside
+            foreach (Collider rCol in robotColliders)
             {
-                isBallFlying = false;
+                if (rCol != null && rCol != storageTrigger)
+                    Physics.IgnoreCollision(ballCol, rCol, true);
+            }
 
-                Rigidbody rb = flyingBall.GetComponent<Rigidbody>();
-                if (rb != null)
+            // Real physical dynamic launch
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            // Clear any residual velocities
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            // Apply forward + upward launch impulse
+            Vector3 shootDir = firePoint != null ? firePoint.forward : transform.forward;
+            Vector3 launchVelocity = (shootDir * forwardForce) + (Vector3.up * upwardForce);
+            rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+
+            // Register tracker to monitor when Y >= 14
+            activeBalls.Add(new BallCollisionTracker
+            {
+                ball = ball,
+                ballCol = ballCol,
+                rb = rb
+            });
+        }
+    }
+
+    void MonitorBallHeights()
+    {
+        for (int i = activeBalls.Count - 1; i >= 0; i--)
+        {
+            BallCollisionTracker tracker = activeBalls[i];
+
+            if (tracker.ball == null)
+            {
+                activeBalls.RemoveAt(i);
+                continue;
+            }
+
+            // Once the ball climbs past Y = 14, restore collision with the robot
+            if (tracker.ball.transform.position.y >= reactivationYThreshold)
+            {
+                foreach (Collider rCol in robotColliders)
                 {
-                    // TRUE exit velocity: the exact tangent (derivative) of the
-                    // quadratic Bezier curve at t=1, i.e. dB/dt = 2*(P2 - P1).
-                    // Using this instead of an average straight-line speed keeps
-                    // direction AND magnitude continuous at the handoff, so there's
-                    // no sudden deceleration ("stop") when physics takes over.
-                    Vector3 exitVelocity = 2f * (endPos - controlPoint) / throwDuration;
-
-                    rb.isKinematic = false;
-                    rb.useGravity = true;
-                    rb.velocity = exitVelocity * exitSpeedMultiplier;
-
-                    // Smooths out the visual gap between fixed-timestep physics
-                    // and the render frame rate right after the handoff.
-                    rb.interpolation = RigidbodyInterpolation.Interpolate;
-
-                    // Prevents the ball from tunneling into / snagging on
-                    // anything right as it re-enables its collider.
-                    rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                    if (rCol != null && tracker.ballCol != null)
+                        Physics.IgnoreCollision(tracker.ballCol, rCol, false);
                 }
-
-                Collider col = flyingBall.GetComponent<Collider>();
-                if (col != null) col.enabled = true;
-
-                flyingBall = null;
+                activeBalls.RemoveAt(i);
             }
         }
     }
 
-    void StartThrow()
-    {
-        if (readyBall == null || firePoint == null) return;
-
-        GameObject ball = readyBall;
-        isBallReady = false;
-        readyBall = null;
-
-        ball.transform.SetParent(null);
-
-        Rigidbody rb = ball.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
-
-        Collider col = ball.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        startPos = firePoint.position;
-
-        if (target != null)
-            endPos = target.position;
-        else
-            endPos = firePoint.position + firePoint.forward * shootDistance;
-
-        controlPoint = (startPos + endPos) * 0.5f + Vector3.up * arcHeight;
-
-        flyingBall = ball;
-        t = 0f;
-        isBallFlying = true;
-    }
-
-    // Called only by the StorageTriggerRelay sitting on storageTrigger's GameObject —
-    // this is the only path that can set isBallReady now, so touching any other
-    // collider on the robot (its frame, its front, etc.) no longer does anything.
     public void HandleStorageTriggerEnter(Collider other)
     {
-        if (other.CompareTag("WildFire") && !isBallFlying)
+        if (other.CompareTag("WildFire"))
         {
-            readyBall = other.gameObject;
-            isBallReady = true;
+            if (!ballQueue.Contains(other.gameObject))
+            {
+                ballQueue.Enqueue(other.gameObject);
+            }
         }
     }
 
     public void HandleStorageTriggerExit(Collider other)
     {
-        if (other.gameObject == readyBall)
+        if (ballQueue.Contains(other.gameObject))
         {
-            readyBall = null;
-            isBallReady = false;
+            Queue<GameObject> temp = new Queue<GameObject>();
+            while (ballQueue.Count > 0)
+            {
+                GameObject item = ballQueue.Dequeue();
+                if (item != other.gameObject) temp.Enqueue(item);
+            }
+            while (temp.Count > 0) ballQueue.Enqueue(temp.Dequeue());
         }
     }
 }
 
-// Lives on the storage trigger's own GameObject (added automatically by
-// RobotShooter.Awake). Its only job is forwarding this specific collider's
-// trigger events back to the shooter — nothing else on the robot can trigger it.
 public class StorageTriggerRelay : MonoBehaviour
 {
     [HideInInspector] public RobotShooter owner;

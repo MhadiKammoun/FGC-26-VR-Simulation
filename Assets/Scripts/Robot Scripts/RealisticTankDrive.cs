@@ -5,43 +5,27 @@ using UnityEngine.InputSystem;
 public class RealisticTankDrive : MonoBehaviour
 {
     [Header("Input Actions")]
-    [Tooltip("Input action for the left stick (Vector2 or Axis)")]
     [SerializeField] private InputActionReference leftStickAction;
-
-    [Tooltip("Input action for the right stick (Vector2 or Axis)")]
     [SerializeField] private InputActionReference rightStickAction;
 
     [Header("Chassis Physics Settings")]
-    [Tooltip("Maximum linear driving speed (m/s)")]
     [SerializeField] private float maxSpeed = 7f;
-
-    [Tooltip("Linear acceleration rate")]
     [SerializeField] private float linearAcceleration = 16.0f;
-
-    [Tooltip("Maximum turning rate in degrees/sec")]
     [SerializeField] private float maxTurnRate = 180.0f;
-
-    [Tooltip("Angular turning acceleration rate")]
     [SerializeField] private float turnAcceleration = 280.0f;
 
     [Header("Wheel Visuals")]
-    [Tooltip("Assign the left side wheel transforms")]
     [SerializeField] private Transform[] leftWheels;
-
-    [Tooltip("Assign the right side wheel transforms")]
     [SerializeField] private Transform[] rightWheels;
-
-    [Tooltip("Visual wheel spin speed multiplier in degrees per second")]
-    [SerializeField] private float wheelSpinSpeed = 1400;
-
-    [Tooltip("Smoothing/ramp rate for the wheel visual rotation")]
+    [SerializeField] private float wheelSpinSpeed = 1400f;
     [SerializeField] private float wheelAcceleration = 1400.0f;
-
-    [Tooltip("Flip left wheel spin direction if backward")]
     [SerializeField] private bool invertLeft = true;
-
-    [Tooltip("Flip right wheel spin direction")]
     [SerializeField] private bool invertRight = false;
+
+    // Public properties consumed by the Climber Controller
+    [HideInInspector] public Vector3 DesiredLinearVelocity;
+    [HideInInspector] public Vector3 DesiredAngularVelocity;
+    [HideInInspector] public bool isManagedByClimber = false;
 
     private Rigidbody rb;
     private float currentForwardSpeed;
@@ -68,28 +52,41 @@ public class RealisticTankDrive : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Inverted inputs to fix forward/backward direction
         float leftInput = -ReadStickInput(leftStickAction);
         float rightInput = -ReadStickInput(rightStickAction);
 
-        // Fixed steering polarity: Left stick forward + Right stick back now turns chassis RIGHT
+        // Visual wheels ALWAYS spin based on stick inputs
+        UpdateWheels(leftInput, rightInput);
+
+        // Calculate target speeds
         float targetForward = ((leftInput + rightInput) / 2.0f) * maxSpeed;
         float targetTurn = ((rightInput - leftInput) / 2.0f) * maxTurnRate;
 
-        // Smooth acceleration ramps
+        // Anti-sticking compensation
+        float actualForwardSpeed = Vector3.Dot(rb.velocity, transform.forward);
+        if (Mathf.Abs(actualForwardSpeed) < Mathf.Abs(currentForwardSpeed) * 0.5f && Mathf.Abs(currentForwardSpeed) > 0.5f)
+        {
+            currentForwardSpeed = actualForwardSpeed;
+        }
+
+        // Ramp internal speeds
         currentForwardSpeed = Mathf.MoveTowards(currentForwardSpeed, targetForward, linearAcceleration * Time.fixedDeltaTime);
         currentTurnSpeed = Mathf.MoveTowards(currentTurnSpeed, targetTurn, turnAcceleration * Time.fixedDeltaTime);
 
-        // 1. Move chassis linear (maintaining Y velocity for gravity)
-        Vector3 targetVelocity = transform.forward * currentForwardSpeed;
-        targetVelocity.y = rb.velocity.y;
-        rb.velocity = targetVelocity;
+        // Store desired velocities so climber can inspect or blend them
+        DesiredLinearVelocity = transform.forward * currentForwardSpeed;
+        Vector3 targetYawVelocity = transform.up * (currentTurnSpeed * Mathf.Deg2Rad);
+        Vector3 tiltAngularVelocity = Vector3.ProjectOnPlane(rb.angularVelocity, transform.up);
+        DesiredAngularVelocity = targetYawVelocity + tiltAngularVelocity;
 
-        // 2. Turn chassis along local Y
-        rb.angularVelocity = new Vector3(0f, currentTurnSpeed * Mathf.Deg2Rad, 0f);
+        // If the climber is controlling the chassis, hand off velocity application to it
+        if (isManagedByClimber) return;
 
-        // 3. Spin wheels visually
-        UpdateWheels(leftInput, rightInput);
+        // Normal ground driving: keep existing vertical physics velocity intact
+        Vector3 finalVel = DesiredLinearVelocity;
+        finalVel.y = rb.velocity.y;
+        rb.velocity = finalVel;
+        rb.angularVelocity = DesiredAngularVelocity;
     }
 
     private void UpdateWheels(float leftInput, float rightInput)
@@ -107,27 +104,18 @@ public class RealisticTankDrive : MonoBehaviour
     private void RotateSide(Transform[] wheels, float speed)
     {
         if (wheels == null || wheels.Length == 0) return;
-
         float step = speed * Time.fixedDeltaTime;
-
         for (int i = 0; i < wheels.Length; i++)
         {
-            if (wheels[i] != null)
-            {
-                wheels[i].Rotate(0f, 0f, step, Space.Self);
-            }
+            if (wheels[i] != null) wheels[i].Rotate(0f, 0f, step, Space.Self);
         }
     }
 
     private float ReadStickInput(InputActionReference actionRef)
     {
         if (actionRef == null || actionRef.action == null) return 0f;
-
         if (actionRef.action.activeControl?.valueType == typeof(Vector2))
-        {
             return actionRef.action.ReadValue<Vector2>().y;
-        }
-
         return actionRef.action.ReadValue<float>();
     }
 }

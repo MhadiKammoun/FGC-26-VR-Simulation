@@ -33,9 +33,18 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Intake button",
+                    "name": "Intake button In",
                     "type": "Button",
                     "id": "646a941c-db34-4923-926a-1d7b2dea2b90",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Intake button Out",
+                    "type": "Button",
+                    "id": "ae5b44c3-658c-4248-85eb-a893875acb61",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -58,6 +67,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Shooter",
+                    "type": "Button",
+                    "id": "de364043-e966-4ba2-b224-85bd41387daa",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -130,11 +148,11 @@
                 {
                     "name": "",
                     "id": "991a7750-d968-4793-9efd-878389224f85",
-                    "path": "<Gamepad>/rightTrigger",
+                    "path": "<Gamepad>/buttonNorth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Intake button",
+                    "action": "Intake button In",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -157,6 +175,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Hanging",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3e5dba13-6970-4853-bee9-032c3778ca97",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shooter",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "698f6961-a49e-4ab0-ac9b-ce6c842949c2",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Intake button Out",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

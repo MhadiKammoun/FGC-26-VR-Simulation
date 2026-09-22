@@ -116,7 +116,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6126626486997635744}
   m_Layer: 0
-  m_Name: Gripo Wheel
+  m_Name: Grip Wheel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

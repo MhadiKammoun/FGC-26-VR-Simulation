@@ -48,7 +48,7 @@ public class SimpleIntake : MonoBehaviour
     private void OnTogglePressed(InputAction.CallbackContext context)
     {
         intakeActive = !intakeActive;
-        Debug.Log("Intake " + (intakeActive ? "ACTIVE" : "INACTIVE"));
+        //Debug.Log("Intake " + (intakeActive ? "ACTIVE" : "INACTIVE"));
     }
 
     private void Update()
