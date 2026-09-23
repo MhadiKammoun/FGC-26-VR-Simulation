@@ -69,7 +69,7 @@ public class ScoreManager : MonoBehaviour
             cooperationBonusPoints +
             extinguisherPoints +
             partnerClimbPoints +
-            (climbMultiplier * suppressionUnitPoints)
+            ( (1 +climbMultiplier) * suppressionUnitPoints)
         );
     }
     void Update()

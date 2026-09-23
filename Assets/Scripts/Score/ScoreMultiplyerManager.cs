@@ -1,15 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ScoreMultiplyerManager : MonoBehaviour
 {
     [SerializeField] private ScoreManager scoreManager;
+    [SerializeField] private PipeClimberController climber;   // ← drag the robot that has PipeClimberController
 
     private string currentLocationTag;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Plane") ||
-            other.CompareTag("Brace1") ||
+        if (other.CompareTag("Brace1") ||
             other.CompareTag("Brace2") ||
             other.CompareTag("Brace3"))
         {
@@ -19,10 +19,8 @@ public class ScoreMultiplyerManager : MonoBehaviour
 
     public void CheckRobotLocation()
     {
-        
-
-
-        if (currentLocationTag == "Plane")
+        // Use the grounded function instead of "Plane" tag
+        if (climber != null && climber.isGrounded)
         {
             scoreManager.AddClimbMultiplier(0.05f);
         }

@@ -8,8 +8,8 @@ public class SpherePoolUI : MonoBehaviour
     public int poolSize = 500;
     public GameObject Point_1;
     public GameObject Point_2;
-    public int batchSize = 100;      // Spawn 100 at a time
-    public float batchDelay = 3f;    // Wait seconds between batches
+    public int batchSize = 100;
+    public float batchDelay = 3f;
 
     private Queue<GameObject> pool;
 
@@ -24,7 +24,7 @@ public class SpherePoolUI : MonoBehaviour
         }
     }
 
-    // Call this from a UI Button's OnClick event
+    // This is the method the Timer will call
     public void ActivateSpawn()
     {
         Vector3[] testPositions = new Vector3[poolSize];
