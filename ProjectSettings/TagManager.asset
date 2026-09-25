@@ -9,6 +9,9 @@ TagManager:
   - WildFire
   - Plane
   - Brace
+  - Zone 1
+  - Zone 2
+  - Zone 3
   layers:
   - Default
   - TransparentFX

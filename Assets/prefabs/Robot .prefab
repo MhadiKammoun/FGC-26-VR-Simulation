@@ -6638,7 +6638,7 @@ MonoBehaviour:
   pushForce: 25
   pushDirection: {x: 0, y: 0, z: 1}
   targetTag: WildFire
-  intakeActive: 1
+  currentState: 0
 --- !u!1 &4053421832994703158
 GameObject:
   m_ObjectHideFlags: 0
@@ -7882,6 +7882,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6104701616151734215}
   - component: {fileID: 4587083445024848325}
+  - component: {fileID: 9099553374023603004}
   m_Layer: 0
   m_Name: Hanging Anchor
   m_TagString: Untagged
@@ -7897,13 +7898,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4884981333816045431}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10452846, y: 0, z: 0, w: 0.9945219}
+  m_LocalRotation: {x: 0.13917309, y: 0, z: 0, w: 0.9902681}
   m_LocalPosition: {x: -0.1296, y: 0.29, z: 0.06025}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4881098641049482685}
-  m_LocalEulerAnglesHint: {x: 12, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 16, y: 0, z: 0}
 --- !u!65 &4587083445024848325
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7923,8 +7924,24 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.1, y: 0.05, z: 0.14}
+  m_Size: {x: 0.05, y: 0.02, z: 0.14}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &9099553374023603004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4884981333816045431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2e383bc090a5534ab626cc36eb8b112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  climberController: {fileID: 2048507647737661251}
+  zone1Tag: Zone 1
+  zone2Tag: Zone 2
+  zone3Tag: Zone 3
 --- !u!1 &4930635370503836247
 GameObject:
   m_ObjectHideFlags: 0
@@ -11434,15 +11451,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48109d9db368f4c4882b8476292b262c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  intakeToggleAction: {fileID: -8325148445869244534, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
-  pushForce: 15
+  basePusher: {fileID: 2725913598561068908}
+  intakeAction: {fileID: -8325148445869244534, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
+  reverseAction: {fileID: 130484930286928290, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
+  pushForce: 30
   pushDirection: {x: 0, y: 0, z: 1}
   targetTag: WildFire
   roller: {fileID: 1256913997323436326}
   rollerSpeed: 360
   rollerRotationAxis: {x: 1, y: 0, z: 0}
   invertRoller: 1
-  intakeActive: 0
+  currentState: 0
 --- !u!1 &7419158490806719514
 GameObject:
   m_ObjectHideFlags: 0
