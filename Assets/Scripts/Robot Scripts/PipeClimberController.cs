@@ -52,8 +52,41 @@ public class PipeClimberController : MonoBehaviour
         tankDrive = GetComponent<RealisticTankDrive>();
     }
 
-    private void OnEnable() => climbStickAction?.action.Enable();
-    private void OnDisable() => climbStickAction?.action.Disable();
+    private void OnEnable()
+    {
+        climbStickAction?.action?.Enable();
+    }
+
+    private void OnDisable()
+    {
+        climbStickAction?.action?.Disable();
+
+        // 1. Immediately cut all linear and angular momentum
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            // If stopped mid-air on the brace, stay locked in place for settling check
+            if (isTouchingBrace)
+            {
+                rb.useGravity = false;
+            }
+            else
+            {
+                rb.useGravity = true;
+            }
+        }
+
+        // 2. Clear climbing active flags
+        isClimbing = false;
+
+        // 3. Return drivetrain drive control
+        if (tankDrive != null)
+        {
+            tankDrive.isManagedByClimber = false;
+        }
+    }
 
     private void FixedUpdate()
     {

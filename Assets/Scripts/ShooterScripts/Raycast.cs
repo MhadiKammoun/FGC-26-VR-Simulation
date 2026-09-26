@@ -1,77 +1,141 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Raycast : MonoBehaviour
+public class RaycastBundle : MonoBehaviour
 {
-    public static float distanceFromTarget;
-    public static bool isInteractable;
-    public static GameObject currentTarget;
+    [Header("Bundle Geometry")]
+    [Tooltip("Radius of the raycast cylinder.")]
+    public float radius = 0.5f;
 
-    [Header("Raycast Thickness")]
-    [Tooltip("How thick the detection beam is. Increase for easier aiming.")]
-    public float sphereRadius = 0.5f;
-
-    [Tooltip("Maximum distance the player can target an object from.")]
+    [Tooltip("Maximum distance to check.")]
     public float maxDistance = 10f;
 
-    private GameObject previousTarget;
+    [Tooltip("Distance between parallel rays.")]
+    [Range(0.05f, 0.5f)]
+    public float raySpacing = 0.15f;
 
-    void Update()
+    public LayerMask hitLayers = ~0;
+
+    [Header("Targeting State")]
+    public float distanceFromTarget;
+    public bool isInteractable;
+    public GameObject currentTarget;
+
+    // Events to decouple outline/interaction logic
+    public event Action<GameObject> OnTargetDetected;
+    public event Action OnTargetLost;
+
+    private readonly List<Vector2> diskSampleOffsets = new List<Vector2>();
+    private MaterialPropertyBlock propBlock;
+    private static readonly int OutlinePropId = Shader.PropertyToID("_Outline");
+
+    private void Awake()
     {
-        RaycastHit hit;
+        propBlock = new MaterialPropertyBlock();
+        RebuildSampleGrid();
+    }
 
-        // SphereCast creates a "thick" ray with a radius
-        if (Physics.SphereCast(transform.position, sphereRadius, transform.forward, out hit, maxDistance))
+    private void OnValidate()
+    {
+        // Recompute in editor when tweaking variables
+        RebuildSampleGrid();
+    }
+
+    private void Update()
+    {
+        GameObject bestTarget = null;
+        float closestHitDistance = maxDistance;
+
+        for (int i = 0; i < diskSampleOffsets.Count; i++)
         {
-            distanceFromTarget = hit.distance;
+            Vector3 originOffset = (transform.right * diskSampleOffsets[i].x) + (transform.up * diskSampleOffsets[i].y);
+            Vector3 rayStart = transform.position + originOffset;
 
-            if (hit.collider.CompareTag("WildFire"))
+            if (Physics.Raycast(rayStart, transform.forward, out RaycastHit hit, maxDistance, hitLayers, QueryTriggerInteraction.Ignore))
             {
-                isInteractable = true;
-                currentTarget = hit.collider.gameObject;
-
-                // === CHECK THE "OUTLINE" CHECKBOX in Surface Inputs ===
-                var renderer = hit.collider.GetComponent<MeshRenderer>();
-                if (renderer != null && renderer.materials.Length > 1)
+                if (hit.collider.CompareTag("WildFire") && hit.distance < closestHitDistance)
                 {
-                    Material outlineMat = renderer.materials[1];
-                    outlineMat.SetFloat("_Outline", 1f);   // Checks the OUTLINE checkbox
+                    closestHitDistance = hit.distance;
+                    bestTarget = hit.collider.gameObject;
                 }
+            }
+        }
 
-                // Uncheck on previous ball
-                if (previousTarget != null && previousTarget != hit.collider.gameObject)
-                {
-                    var prevRenderer = previousTarget.GetComponent<MeshRenderer>();
-                    if (prevRenderer != null && prevRenderer.materials.Length > 1)
-                    {
-                        prevRenderer.materials[1].SetFloat("_Outline", 0f);
-                    }
-                }
-                previousTarget = hit.collider.gameObject;
-            }
-            else
-            {
-                ClearTarget();
-            }
+        EvaluateTargetChange(bestTarget, closestHitDistance);
+    }
+
+    private void EvaluateTargetChange(GameObject newTarget, float distance)
+    {
+        if (newTarget == currentTarget)
+        {
+            if (currentTarget != null) distanceFromTarget = distance;
+            return;
+        }
+
+        // Target changed or lost
+        if (currentTarget != null)
+        {
+            SetOutline(currentTarget, 0f);
+            OnTargetLost?.Invoke();
+        }
+
+        currentTarget = newTarget;
+
+        if (currentTarget != null)
+        {
+            distanceFromTarget = distance;
+            isInteractable = true;
+            SetOutline(currentTarget, 1f);
+            OnTargetDetected?.Invoke(currentTarget);
         }
         else
         {
-            ClearTarget();
+            isInteractable = false;
+            distanceFromTarget = 0f;
         }
     }
 
-    private void ClearTarget()
+    private void SetOutline(GameObject obj, float state)
     {
-        isInteractable = false;
-        currentTarget = null;
-
-        if (previousTarget != null)
+        if (obj.TryGetComponent<Renderer>(out var rend))
         {
-            var prevRenderer = previousTarget.GetComponent<MeshRenderer>();
-            if (prevRenderer != null && prevRenderer.materials.Length > 1)
+            rend.GetPropertyBlock(propBlock);
+            propBlock.SetFloat(OutlinePropId, state);
+            rend.SetPropertyBlock(propBlock);
+        }
+    }
+
+    public void RebuildSampleGrid()
+    {
+        diskSampleOffsets.Clear();
+        diskSampleOffsets.Add(Vector2.zero);
+
+        int rings = Mathf.CeilToInt(radius / Mathf.Max(0.01f, raySpacing));
+        for (int r = 1; r <= rings; r++)
+        {
+            float currentRadius = (radius / rings) * r;
+            float circumference = 2f * Mathf.PI * currentRadius;
+            int countOnRing = Mathf.Max(6, Mathf.RoundToInt(circumference / raySpacing));
+
+            for (int i = 0; i < countOnRing; i++)
             {
-                prevRenderer.materials[1].SetFloat("_Outline", 0f);
+                float angle = i * (2f * Mathf.PI / countOnRing);
+                diskSampleOffsets.Add(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * currentRadius);
             }
-            previousTarget = null;
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (diskSampleOffsets.Count == 0) RebuildSampleGrid();
+
+        Gizmos.color = Color.cyan;
+        for (int i = 0; i < diskSampleOffsets.Count; i++)
+        {
+            Vector3 originOffset = (transform.right * diskSampleOffsets[i].x) + (transform.up * diskSampleOffsets[i].y);
+            Vector3 rayStart = transform.position + originOffset;
+            Gizmos.DrawLine(rayStart, rayStart + transform.forward * maxDistance);
         }
     }
 }

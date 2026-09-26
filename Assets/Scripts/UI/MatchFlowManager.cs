@@ -13,6 +13,10 @@ public class MatchFlowManager : MonoBehaviour
     [Tooltip("InputActionReference for pausing/unpausing (e.g., Keyboard Escape or Gamepad Start/Options).")]
     [SerializeField] private InputActionReference pauseAction;
 
+    [Header("UI Audio")]
+    [SerializeField] private AudioSource uiAudioSource;
+    [SerializeField] private AudioClip buttonClickClip;
+
     [Header("Flow UI Panels")]
     [SerializeField] private GameObject welcomePanel;
     [SerializeField] private GameObject setupStatusPanel;
@@ -193,6 +197,13 @@ public class MatchFlowManager : MonoBehaviour
     private void Awake()
     {
         originalFixedDeltaTime = Time.fixedDeltaTime;
+
+        // Auto-configure UI AudioSource so sounds play even when paused
+        if (uiAudioSource != null)
+        {
+            uiAudioSource.ignoreListenerPause = true;
+            uiAudioSource.playOnAwake = false;
+        }
     }
 
     private void OnEnable()
@@ -228,6 +239,7 @@ public class MatchFlowManager : MonoBehaviour
         if (resultsPanel != null) resultsPanel.SetActive(false);
         if (startMatchButton != null) startMatchButton.gameObject.SetActive(false);
 
+        // 1. Hook button functional callbacks
         if (setupFieldButton != null) setupFieldButton.onClick.AddListener(OnSetupFieldClicked);
         if (startMatchButton != null) startMatchButton.onClick.AddListener(OnStartMatchClicked);
         if (hudPauseButton != null) hudPauseButton.onClick.AddListener(TogglePause);
@@ -235,9 +247,18 @@ public class MatchFlowManager : MonoBehaviour
         if (restartButton != null) restartButton.onClick.AddListener(ReloadCurrentScene);
         if (resultsPlayAgainButton != null) resultsPlayAgainButton.onClick.AddListener(ReloadCurrentScene);
 
-        // Controls sub-menu buttons
         if (openControlsButton != null) openControlsButton.onClick.AddListener(OpenControlsSubPanel);
         if (closeControlsButton != null) closeControlsButton.onClick.AddListener(CloseControlsSubPanel);
+
+        // 2. Auto-bind click audio to all registered buttons
+        RegisterButtonClickAudio(setupFieldButton);
+        RegisterButtonClickAudio(startMatchButton);
+        RegisterButtonClickAudio(hudPauseButton);
+        RegisterButtonClickAudio(resumeButton);
+        RegisterButtonClickAudio(restartButton);
+        RegisterButtonClickAudio(resultsPlayAgainButton);
+        RegisterButtonClickAudio(openControlsButton);
+        RegisterButtonClickAudio(closeControlsButton);
 
         if (matchTimer != null) matchTimer.OnMatchTimerEnd += HandleMatchEnded;
     }
@@ -249,11 +270,24 @@ public class MatchFlowManager : MonoBehaviour
         AudioListener.pause = false;
     }
 
+    private void RegisterButtonClickAudio(Button btn)
+    {
+        if (btn == null) return;
+        btn.onClick.AddListener(PlayButtonClickSound);
+    }
+
+    public void PlayButtonClickSound()
+    {
+        if (uiAudioSource != null && buttonClickClip != null)
+        {
+            uiAudioSource.PlayOneShot(buttonClickClip);
+        }
+    }
+
     private void OnPauseActionTriggered(InputAction.CallbackContext context)
     {
         if (!matchStarted || isSettling) return;
 
-        // If currently in the Controls sub-panel, pressing Pause acts as a "Back" button
         if (controlsPanel != null && controlsPanel.activeSelf)
         {
             CloseControlsSubPanel();
@@ -377,7 +411,9 @@ public class MatchFlowManager : MonoBehaviour
         matchStarted = false;
         isSettling = true;
 
+        // Disables controller scripts (triggers OnDisable on PipeClimberController to zero velocity)
         SetTargetScriptsActive(false);
+
         StartCoroutine(SettlingPeriodRoutine());
     }
 

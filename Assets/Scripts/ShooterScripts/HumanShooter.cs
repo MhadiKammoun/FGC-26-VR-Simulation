@@ -4,6 +4,10 @@ using UnityEngine.InputSystem;
 
 public class HumanShooter : MonoBehaviour
 {
+    [Header("Raycast Reference")]
+    [Tooltip("Drag the GameObject with the Raycast / RaycastBundle component here")]
+    public RaycastBundle raycastSensor; // Rename to Raycast if your class is named Raycast
+
     [Header("Shooting Settings (Basketball Style)")]
     [Tooltip("How long the arc takes (seconds)")]
     public float throwDuration = 0.66f;
@@ -15,6 +19,9 @@ public class HumanShooter : MonoBehaviour
     public Transform Target;          // ← Drag the hole here
     public InputActionReference pickUpAction;
     public InputActionReference ShootingAction;
+
+    [Header("Hold Point")]
+    public Transform holdPoint;       // ← Drag the empty child under the camera here
 
     void OnEnable()
     {
@@ -28,23 +35,27 @@ public class HumanShooter : MonoBehaviour
         ShootingAction.action.Disable();
     }
 
-    [Header("Hold Point")]
-    public Transform holdPoint;            // ← Drag the empty child under the camera here
-
     void Start()
     {
         if (holdPoint != null)
             PlayerHand.holdPoint = holdPoint;
+
+        // Auto-assign if not set in Inspector
+        if (raycastSensor == null)
+            raycastSensor = GetComponentInChildren<RaycastBundle>();
     }
 
     void Update()
     {
         // === PICKUP with C (blocked if already holding a ball) ===
-        if (pickUpAction.action.WasPressedThisFrame() && Raycast.isInteractable && PlayerHand.currentHeldObject == null)
+        if (raycastSensor != null &&
+            pickUpAction.action.WasPressedThisFrame() &&
+            raycastSensor.isInteractable &&
+            PlayerHand.currentHeldObject == null)
         {
-            if (Raycast.currentTarget != null)
+            if (raycastSensor.currentTarget != null)
             {
-                var ball = Raycast.currentTarget.GetComponent<BallPickUp>();
+                var ball = raycastSensor.currentTarget.GetComponent<BallPickUp>();
                 if (ball != null)
                     ball.TryPickUp();
             }
@@ -95,7 +106,6 @@ public class HumanShooter : MonoBehaviour
 
         while (timer < throwDuration)
         {
-            // Safety check in case the ball is destroyed mid-air
             if (ball == null) yield break;
 
             timer += Time.deltaTime;
@@ -106,17 +116,16 @@ public class HumanShooter : MonoBehaviour
 
             ball.transform.position = pos + arc;
 
-            yield return null; // Wait for the next frame
+            yield return null;
         }
 
-        // Arc finished - restore physics on THIS specific ball
         if (ball != null)
         {
             Rigidbody rb = ball.GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.isKinematic = false;
-                rb.useGravity = true;       // ← Gravity re-enabled at target
+                rb.useGravity = true;
             }
         }
     }
