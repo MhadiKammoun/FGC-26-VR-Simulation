@@ -1,5 +1,5 @@
 {
-    "name": "Joy",
+    "name": "RobotControls",
     "maps": [
         {
             "name": "Joy",
@@ -45,15 +45,6 @@
                     "name": "Intake button Out",
                     "type": "Button",
                     "id": "ae5b44c3-658c-4248-85eb-a893875acb61",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Camerea Switching",
-                    "type": "Button",
-                    "id": "c1198ddd-4d82-4899-93a7-86af5b1bf6be",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -200,28 +191,6 @@
                 },
                 {
                     "name": "",
-                    "id": "628690cd-5b25-4aef-9e38-28fb1f657c44",
-                    "path": "<Gamepad>/rightStickPress",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Camerea Switching",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "fa01bf58-6bbe-45b6-8cf2-af2f6b3b3456",
-                    "path": "<XRController>{RightHand}/joystickClicked",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Camerea Switching",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "433f6c86-f980-4748-8428-24700b046fce",
                     "path": "<Gamepad>/leftStick",
                     "interactions": "",
@@ -311,11 +280,50 @@
                 {
                     "name": "",
                     "id": "9d003904-a2b9-4a9c-b03a-3d3418584eb4",
-                    "path": "<XRController>{LeftHand}/{TriggerButton}",
+                    "path": "<XRController>{LeftHand}/joystickClicked",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Camera switch",
+            "id": "78ef398a-1a36-40f9-8645-48cb540a54a7",
+            "actions": [
+                {
+                    "name": "Camerea Switching",
+                    "type": "Button",
+                    "id": "e8495b9f-5bfe-4b0c-b607-2f0538e6a847",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f8e52723-492d-48ca-a6a0-e514c75fa33d",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Camerea Switching",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f6810569-b75b-4292-868b-7ff302f14eee",
+                    "path": "<XRController>{RightHand}/joystickClicked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Camerea Switching",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

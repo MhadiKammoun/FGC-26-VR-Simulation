@@ -11361,7 +11361,7 @@ Transform:
   m_GameObject: {fileID: 7383432824781983705}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -0.2053, y: 0.0545, z: -0.20097356}
+  m_LocalPosition: {x: -0.2053, y: 0.0545, z: -0.1658}
   m_LocalScale: {x: 0.089999996, y: 0.16299999, z: 0.09}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12692,6 +12692,10 @@ MonoBehaviour:
   gearSpinSpeed: 720
   climbSpeed: 2
   deadzone: 0.5
+  braceLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  gearRayDistance: 0.15
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -12706,6 +12710,7 @@ MonoBehaviour:
   treadHalfLength: 1.8
   climbStickAction: {fileID: 484898004088634588, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
   isTouchingBrace: 0
+  gearsTouchingBrace: 0
   isClimbing: 0
   isGrounded: 1
 --- !u!114 &3765575926041017497

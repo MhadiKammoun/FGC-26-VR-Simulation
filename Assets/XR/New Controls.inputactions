@@ -6,7 +6,7 @@
             "id": "e5b3d8a2-6e81-4e54-8f23-3fa7bda08dc9",
             "actions": [
                 {
-                    "name": "pickup",
+                    "name": "Pickup Right",
                     "type": "Button",
                     "id": "625a5a99-dd18-4956-8dbb-07eecc75db8a",
                     "expectedControlType": "Button",
@@ -15,9 +15,27 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Shooting",
+                    "name": "Pickup Left",
+                    "type": "Button",
+                    "id": "e85844b6-e72a-4958-b1fa-632948733a40",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Shooting Right",
                     "type": "Button",
                     "id": "83e0debd-a8d1-451b-befb-a9f958333b15",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Shooting Left",
+                    "type": "Button",
+                    "id": "e0ce8ff8-272d-4e31-9712-a165adcf8534",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -32,7 +50,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "pickup",
+                    "action": "Pickup Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -43,7 +61,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "pickup",
+                    "action": "Pickup Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -54,7 +72,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Shooting",
+                    "action": "Shooting Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -65,7 +83,51 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Shooting",
+                    "action": "Shooting Right",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5cfd468e-9aa5-4094-b50d-9f92fceebdb4",
+                    "path": "<XRController>{LeftHand}/{GripButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pickup Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e6258345-9ae2-43e0-bf5c-0fec74a8c50e",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pickup Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f5f0aa14-cb28-4f05-9d3a-545ea9941261",
+                    "path": "<Keyboard>/#(X)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shooting Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d1b9b3cc-62fe-4c50-8216-f7e9a73d6159",
+                    "path": "<XRController>{LeftHand}/{GripButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shooting Left",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

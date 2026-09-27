@@ -75,7 +75,6 @@ public class MatchFlowManager : MonoBehaviour
     [SerializeField]
     private string[] gameFacts = new string[]
     {
-        // --- Scoring & Multipliers ---
         "Tip: Every WILDFIRE ball contained inside your Regional Alliance Suppression Unit awards one base point.",
         "Tip: Suppression Unit points are scaled by your Alliance Climb Multiplier, dramatically boosting your endgame match score.",
         "Tip: The Extinguisher is a shared scoring structure—each ball deposited awards one point directly to all six teams.",
@@ -101,8 +100,6 @@ public class MatchFlowManager : MonoBehaviour
         "Tip: Real-time scores displayed during the match are unofficial; field refs manually certify final tallies after resting.",
         "Tip: Tiebreakers in ranking rely first on high match scores, then on cumulative unmultiplied Suppression Unit points.",
         "Tip: Only undamaged WILDFIRE game pieces will be counted toward your alliance's final match score.",
-
-        // --- Field Navigation & Robot Handling ---
         "Tip: Over five hundred foam WILDFIRE balls carpet the arena floor; prioritize high ground clearance to prevent high-centering.",
         "Tip: Keep your center of gravity low when traversing deep ball clusters to prevent tipping over.",
         "Tip: Compliant intake rollers prevent jamming when simultaneously collecting multiple 100 mm polyurethane foam balls.",
@@ -128,8 +125,6 @@ public class MatchFlowManager : MonoBehaviour
         "Tip: Avoid hard snag points on your chassis underbelly to prevent loose foam balls from dragging beneath you.",
         "Tip: Position your cameras with clear sightlines above the 50 cm baseline to reliably track AprilTags above ball piles.",
         "Tip: Rigid chassis structures ensure reliable climbs when ascending the steep, slippery heat-shrink covered steel pipe braces.",
-
-        // --- Match Flow & Penalties ---
         "Tip: Each match runs exactly two minutes and thirty seconds; plan transitions between cycling and climbing carefully.",
         "Tip: Controllers must be placed onto the playing surface immediately once the match timer counts down to zero.",
         "Tip: Any intentional robot movement after the match timer expires will result in an immediate Yellow Card.",
@@ -155,8 +150,6 @@ public class MatchFlowManager : MonoBehaviour
         "Tip: Human players can only pass balls to robots or carpet via the gravity chute by pressing the lever.",
         "Tip: Deliberately damaging, deforming, or shredding WILDFIRE foam balls leads to cards and uncounted match game pieces.",
         "Tip: Avoid extending mechanisms beyond the single-direction 50 cm limit to evade severe Yellow Card and Major Foul penalties.",
-
-        // --- Strategic Mindset & Teamwork ---
         "Tip: Wildfire containment is an offensive challenge—defensive pinning, blocking, and scoring interference draw immediate Major Fouls.",
         "Tip: Coordinate designated roles early: assign primary floor sweepers, Fire Shield shuttle feeders, and dedicated high-altitude climbers.",
         "Tip: Feeding balls through the Fire Shield Port enables your Human Player to score uncontested Extinguisher global points.",
@@ -198,7 +191,6 @@ public class MatchFlowManager : MonoBehaviour
     {
         originalFixedDeltaTime = Time.fixedDeltaTime;
 
-        // Auto-configure UI AudioSource so sounds play even when paused
         if (uiAudioSource != null)
         {
             uiAudioSource.ignoreListenerPause = true;
@@ -239,7 +231,6 @@ public class MatchFlowManager : MonoBehaviour
         if (resultsPanel != null) resultsPanel.SetActive(false);
         if (startMatchButton != null) startMatchButton.gameObject.SetActive(false);
 
-        // 1. Hook button functional callbacks
         if (setupFieldButton != null) setupFieldButton.onClick.AddListener(OnSetupFieldClicked);
         if (startMatchButton != null) startMatchButton.onClick.AddListener(OnStartMatchClicked);
         if (hudPauseButton != null) hudPauseButton.onClick.AddListener(TogglePause);
@@ -250,7 +241,6 @@ public class MatchFlowManager : MonoBehaviour
         if (openControlsButton != null) openControlsButton.onClick.AddListener(OpenControlsSubPanel);
         if (closeControlsButton != null) closeControlsButton.onClick.AddListener(CloseControlsSubPanel);
 
-        // 2. Auto-bind click audio to all registered buttons
         RegisterButtonClickAudio(setupFieldButton);
         RegisterButtonClickAudio(startMatchButton);
         RegisterButtonClickAudio(hudPauseButton);
@@ -411,9 +401,7 @@ public class MatchFlowManager : MonoBehaviour
         matchStarted = false;
         isSettling = true;
 
-        // Disables controller scripts (triggers OnDisable on PipeClimberController to zero velocity)
         SetTargetScriptsActive(false);
-
         StartCoroutine(SettlingPeriodRoutine());
     }
 
@@ -429,7 +417,8 @@ public class MatchFlowManager : MonoBehaviour
                 settlingNoticeText.SetText("SETTLING FIELD: {0:F1}s", timer);
             }
 
-            timer -= Time.deltaTime;
+            // Unscaled time ensures timer decreases even if time is paused
+            timer -= Time.unscaledDeltaTime;
             yield return null;
         }
 
@@ -597,6 +586,10 @@ public class MatchFlowManager : MonoBehaviour
             {
                 MonoBehaviour script = scripts[j];
                 if (script == null || script == this) continue;
+
+                // Never disable UI components (GraphicRaycaster, Button, Image, Text, CanvasScaler)
+                if (script is UnityEngine.EventSystems.UIBehaviour) continue;
+
                 script.enabled = state;
             }
         }

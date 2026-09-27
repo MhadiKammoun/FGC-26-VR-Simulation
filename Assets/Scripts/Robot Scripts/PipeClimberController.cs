@@ -13,6 +13,13 @@ public class PipeClimberController : MonoBehaviour
     public float climbSpeed = 2.0f;
     public float deadzone = 0.5f;
 
+    [Header("Gear Brace Raycast Setup")]
+    [Tooltip("LayerMask containing the brace/pipe objects. Default includes all layers.")]
+    public LayerMask braceLayer = ~0;
+
+    [Tooltip("Length of the ray cast downward locally from each climbing gear.")]
+    [SerializeField] private float gearRayDistance = 0.15f;
+
     [Header("Ground Detection Setup")]
     [Tooltip("Layer assigned to the floor / field carpet.")]
     public LayerMask groundLayer;
@@ -38,6 +45,7 @@ public class PipeClimberController : MonoBehaviour
 
     [Header("Status (Read-Only)")]
     public bool isTouchingBrace = false;
+    public bool gearsTouchingBrace = false;
     public bool isClimbing = false;
     public bool isGrounded = true;
 
@@ -93,7 +101,10 @@ public class PipeClimberController : MonoBehaviour
         // 1. Check ground contact at the true wheel positions
         isGrounded = CheckGroundContact();
 
-        // 2. Read climb input
+        // 2. Verify gear contact with the brace
+        gearsTouchingBrace = CheckGearsBraceContact();
+
+        // 3. Read climb input
         float rawClimb = ReadStick(climbStickAction);
         float absClimb = Mathf.Abs(rawClimb);
         float climbInputRate = 0f;
@@ -105,15 +116,16 @@ public class PipeClimberController : MonoBehaviour
             climbInputRate = dir * norm;
 
             RotateGears(climbInputRate);
-            isClimbing = isTouchingBrace;
+            // Robot only registers as actively climbing if trigger and both gear rays contact the brace
+            isClimbing = isTouchingBrace && gearsTouchingBrace;
         }
         else
         {
             isClimbing = false;
         }
 
-        // 3. Coordinate chassis motion along the pipe
-        if (isTouchingBrace)
+        // 4. Coordinate chassis motion along the pipe
+        if (isTouchingBrace && gearsTouchingBrace)
         {
             if (tankDrive != null) tankDrive.isManagedByClimber = true;
             rb.useGravity = false;
@@ -160,6 +172,29 @@ public class PipeClimberController : MonoBehaviour
             rb.useGravity = true;
         }
     }
+
+    private bool CheckGearsBraceContact()
+    {
+        if (climbingGear1 == null || climbingGear2 == null) return false;
+
+        bool gear1Hit = IsGearHittingBrace(climbingGear1);
+        bool gear2Hit = IsGearHittingBrace(climbingGear2);
+
+        return gear1Hit && gear2Hit;
+    }
+
+    private bool IsGearHittingBrace(Transform gear)
+    {
+        // Use the robot's downward direction (-transform.up) rather than the spinning gear's local up
+        Vector3 rayDir = -transform.up;
+        if (Physics.Raycast(gear.position, rayDir, out RaycastHit hit, gearRayDistance, braceLayer, QueryTriggerInteraction.Ignore))
+        {
+            return hit.collider.CompareTag("Brace") || hit.collider.name.StartsWith("Brace");
+        }
+        return false;
+    }
+
+    
 
     private bool CheckGroundContact()
     {
@@ -258,6 +293,7 @@ public class PipeClimberController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        // 1. Draw Wheel Ground Raycasts
         Vector3[] origins = GetRayOrigins();
         Gizmos.color = isGrounded ? Color.green : Color.red;
 
@@ -273,5 +309,21 @@ public class PipeClimberController : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.TransformPoint(wheelbaseCenterOffset), 0.04f);
         }
+
+        // 2. Draw Gear Raycasts
+        DrawGearGizmo(climbingGear1);
+        DrawGearGizmo(climbingGear2);
+    }
+
+    private void DrawGearGizmo(Transform gear)
+    {
+        if (gear == null) return;
+
+        Vector3 rayDir = -transform.up;
+        bool hitsBrace = IsGearHittingBrace(gear);
+
+        Gizmos.color = hitsBrace ? Color.green : Color.cyan;
+        Gizmos.DrawRay(gear.position, rayDir * gearRayDistance);
+        Gizmos.DrawWireSphere(gear.position + (rayDir * gearRayDistance), 0.015f);
     }
 }

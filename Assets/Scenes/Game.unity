@@ -884,11 +884,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 0.5
-  maxDistance: 12
+  maxDistance: 15
   raySpacing: 0.15
   hitLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 251
   distanceFromTarget: 0
   isInteractable: 0
   currentTarget: {fileID: 0}
@@ -1019,7 +1019,7 @@ MonoBehaviour:
   - {fileID: 613273253}
   - {fileID: 399285030}
   - {fileID: 862739753}
-  switchCameraAction: {fileID: -2304132529340233984, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
+  switchCameraAction: {fileID: -8156333070073266510, guid: 505c6f7b3ee13e54d98c59deda7bed24, type: 3}
 --- !u!4 &1019630719
 Transform:
   m_ObjectHideFlags: 0
