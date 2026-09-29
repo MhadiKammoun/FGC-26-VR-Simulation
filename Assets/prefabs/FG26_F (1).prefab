@@ -11111,7 +11111,7 @@ GameObject:
   - component: {fileID: 3465751931994698829}
   - component: {fileID: 2221107711279920868}
   - component: {fileID: 4358081450993182865}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body1
   m_TagString: Brace
   m_Icon: {fileID: 0}
@@ -16985,7 +16985,7 @@ GameObject:
   - component: {fileID: 5799208665794884778}
   - component: {fileID: 5842580641345710799}
   - component: {fileID: 5184077368990937307}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body1
   m_TagString: Brace
   m_Icon: {fileID: 0}
