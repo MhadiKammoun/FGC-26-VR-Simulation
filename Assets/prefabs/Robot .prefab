@@ -12694,8 +12694,12 @@ MonoBehaviour:
   deadzone: 0.5
   braceLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
-  gearRayDistance: 0.15
+    m_Bits: 256
+  gearRayDistance: 0.35
+  gearRayDiameter: 0.2
+  gearRayCount: 12
+  gearRayRings: 2
+  gearRayCenter: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 128

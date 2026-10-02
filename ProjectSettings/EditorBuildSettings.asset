@@ -21,11 +21,11 @@ EditorBuildSettings:
     path: Assets/Scenes/Official Scens/Game Mobil.unity
     guid: fa4b865575f861d4c8505c6fe282a403
   - enabled: 1
-    path: Assets/Scenes/Official Scens/Game VR.unity
-    guid: 0040b7f283fd12448bc5fea643ab531b
-  - enabled: 1
     path: Assets/Scenes/Official Scens/Lobby.unity
     guid: 1ef117dceaa7d9244addf6ec922cf7e0
+  - enabled: 1
+    path: Assets/Scenes/Official Scens/Game VR.unity
+    guid: 0040b7f283fd12448bc5fea643ab531b
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 622fc2ab97ceea041a2b272c69e488e5, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: d83c8d89f5677ea4c8428f383a3f6a76, type: 2}
