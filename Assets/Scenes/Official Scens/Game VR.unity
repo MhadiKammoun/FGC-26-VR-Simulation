@@ -1470,7 +1470,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1.62
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -5496,7 +5496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6230171632938219527, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6366202158974550392, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -5552,19 +5552,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7122283682254684231, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -70.5312
+      value: -42.556
       objectReference: {fileID: 0}
     - target: {fileID: 7122283682254684231, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_SizeDelta.y
-      value: -404.8803
+      value: -42.762
+      objectReference: {fileID: 0}
+    - target: {fileID: 7122283682254684231, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.00000059605
       objectReference: {fileID: 0}
     - target: {fileID: 7122283682254684231, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 5.07489
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7122283682254684231, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 86.3736
+      value: 0.0000076293945
       objectReference: {fileID: 0}
     - target: {fileID: 7726608941826848721, guid: b9f8943696d2d67488d647bbd4ecd3a8, type: 3}
       propertyPath: m_Camera

@@ -121,7 +121,7 @@ public class MatchFlowManager : MonoBehaviour
         "Tip: Fast sweeping intakes allow your robot to bulldoze loose balls directly toward your human player's Fire Shield.",
         "Tip: Maintain balanced weight distribution to keep your drivetrain from teetering while traversing dense rolling game pieces.",
         "Tip: Practice driving over carpet heavily strewn with loose foam balls to master unpredictable slippage and trajectory loss.",
-        "Tip: Check intake wheel compliance regularly; scuffed or dusty rollers lose friction against smooth polyurethane game spheres.",
+        "Tip: Check intake wheel compliance regularly; scuffed or dusty rollers lose friction against smooth polyurethane foam game spheres.",
         "Tip: Avoid hard snag points on your chassis underbelly to prevent loose foam balls from dragging beneath you.",
         "Tip: Position your cameras with clear sightlines above the 50 cm baseline to reliably track AprilTags above ball piles.",
         "Tip: Rigid chassis structures ensure reliable climbs when ascending the steep, slippery heat-shrink covered steel pipe braces.",
@@ -196,6 +196,10 @@ public class MatchFlowManager : MonoBehaviour
             uiAudioSource.ignoreListenerPause = true;
             uiAudioSource.playOnAwake = false;
         }
+
+        // PC scene: keep the mouse available for UI interaction.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void OnEnable()
@@ -217,6 +221,10 @@ public class MatchFlowManager : MonoBehaviour
 
         ResetTimeScale();
         AudioListener.pause = false;
+
+        // Keep the PC cursor available.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void Start()
@@ -251,13 +259,21 @@ public class MatchFlowManager : MonoBehaviour
         RegisterButtonClickAudio(closeControlsButton);
 
         if (matchTimer != null) matchTimer.OnMatchTimerEnd += HandleMatchEnded;
+
+        // Ensure cursor is available when the scene starts.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void OnDestroy()
     {
         if (matchTimer != null) matchTimer.OnMatchTimerEnd -= HandleMatchEnded;
+
         ResetTimeScale();
         AudioListener.pause = false;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void RegisterButtonClickAudio(Button btn)
@@ -364,7 +380,8 @@ public class MatchFlowManager : MonoBehaviour
 
         int factIndex = UnityEngine.Random.Range(0, gameFacts.Length);
 
-        while (setupStatusPanel.activeInHierarchy && (startMatchButton == null || !startMatchButton.gameObject.activeSelf))
+        while (setupStatusPanel.activeInHierarchy &&
+               (startMatchButton == null || !startMatchButton.gameObject.activeSelf))
         {
             gameFactText.SetText(gameFacts[factIndex]);
             factIndex = (factIndex + 1) % gameFacts.Length;
@@ -390,10 +407,14 @@ public class MatchFlowManager : MonoBehaviour
         if (controlsPanel != null) controlsPanel.SetActive(false);
 
         SetTargetScriptsActive(true);
-        if (matchTimer != null) matchTimer.StartTimer();
 
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (matchTimer != null)
+            matchTimer.StartTimer();
+
+        // FIX:
+        // This scene is PC-only, so do NOT hide or lock the mouse.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void HandleMatchEnded()
@@ -417,7 +438,6 @@ public class MatchFlowManager : MonoBehaviour
                 settlingNoticeText.SetText("SETTLING FIELD: {0:F1}s", timer);
             }
 
-            // Unscaled time ensures timer decreases even if time is paused
             timer -= Time.unscaledDeltaTime;
             yield return null;
         }
@@ -516,16 +536,10 @@ public class MatchFlowManager : MonoBehaviour
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (controlsPanel != null) controlsPanel.SetActive(false);
 
-        if (matchStarted && !isSettling)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-        else
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
+        // FIX:
+        // Keep mouse visible and unlocked in this PC-only scene.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     public void OpenControlsSubPanel()
